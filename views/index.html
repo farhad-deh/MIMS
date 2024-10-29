@@ -9,7 +9,6 @@
     <style>
         body {
             font-family: 'Vazir', Arial, sans-serif;
-            /* Apply the Vazir font */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -77,6 +76,26 @@
             background-color: #2E7D32;
             transform: translateY(-2px);
         }
+
+        .btn-div {
+            margin-top: 45px;
+        }
+
+
+        @media (max-width: 510px) {
+            .btn-div {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .git-link,
+            .swagger-link {
+                margin: 8px;
+                width: 80%;
+            }
+        }
     </style>
 </head>
 
@@ -84,9 +103,13 @@
     <div class="container">
         <h1>Material Inventory Management System</h1>
         <h1>به سیستم مدیریت موجودی مواد خوش آمدید</h1>
-        <div style="margin-top:45px;">
+        <div class="btn-div">
+
             <a href="https://github.com/farhad-deh/MIMS" class="git-link" target="_blank">صفحه ی گیت هاب پروژه</a>
+
             <a href="/docs" class="swagger-link">داکیومنت Swagger</a>
+
+
         </div>
     </div>
 </body>
