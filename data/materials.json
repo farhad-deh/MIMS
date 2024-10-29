@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "name": "Updated Material A",
+    "quantity": 95,
+    "supplier": "string"
+  },
+  {
+    "id": 2,
+    "name": "Material B",
+    "quantity": 200,
+    "supplier": "Supplier Y"
+  },
+  {
+    "id": 3,
+    "name": "Material C",
+    "quantity": 50,
+    "supplier": "Supplier Z"
+  },
+  {
+    "id": 4,
+    "name": "Material D",
+    "quantity": 412,
+    "supplier": "Supplier X"
+  },
+  {
+    "id": 5,
+    "name": "Material E",
+    "quantity": 344,
+    "supplier": "Supplier X"
+  },
+  {
+    "name": "Material test",
+    "quantity": 22,
+    "supplier": "main",
+    "id": 7
+  }
+]
