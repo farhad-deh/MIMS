@@ -1,14 +1,15 @@
-const sql = require("mssql");
+const mysql = require("mysql2");
+require("dotenv").config();
 
-const config = {
+const config = mysql.createPool({
+  host: process.env.DB_SERVER,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  server: process.env.DB_SERVER,
   database: process.env.DB_NAME,
-  options: {
-    encrypt: true, // Use this if you're on Windows Azure
-    trustServerCertificate: true, // Change to true for local dev / self-signed certs
-  },
-};
+  port: process.env.DB_PORT,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+});
 
 module.exports = config;

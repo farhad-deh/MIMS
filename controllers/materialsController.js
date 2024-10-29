@@ -1,119 +1,161 @@
-const fs = require("fs");
-const path = require("path");
+const db = require("../dbConfig");
 
-function readMaterialsFromFile() {
-  const data = fs.readFileSync(
-    path.join(__dirname, "../data/materials.json"),
-    "utf-8"
-  );
-  return JSON.parse(data);
-}
-
-function writeMaterialsToFile(materials) {
-  fs.writeFileSync(
-    path.join(__dirname, "../data/materials.json"),
-    JSON.stringify(materials, null, 2)
-  );
-}
-
-// function getAllMaterials(req, res) {
-//   try {
-//     const materials = readMaterialsFromFile();
-//     res.status(200).json(materials);
-//   } catch (error) {
-//     res
-//       .status(500)
-//       .json({ message: "مشکلی در دریافت لیست متریال ها پیش آمده است ." });
-//   }
-// }
-
-async function getAllMaterials() {
-    try {
-      const pool = await sql.connect(config);
-      const result = await pool.request().query('SELECT * FROM Materials');  
-      return result.recordset;  
-    } catch (err) {
-      console.error('Error fetching materials: ', err);
-      throw err;
+function getAllMaterials(req, res) {
+  db.getConnection((err, connection) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ message: "مشکلی در ارتباط با دیتابیس بوجود آمده است . " });
     }
-  }
-  
+
+    connection.query(
+      `SELECT 
+        materials.id AS material_id,
+        materials.name AS material_name,
+        materials.quantity,
+        materials.created_at,
+        suppliers.id AS supplier_id,
+        suppliers.name AS supplier_name
+      FROM materials
+      JOIN suppliers ON suppliers.id = materials.supplier_id`,
+      (err, rows) => {
+        connection.release();
+
+        if (err) {
+          return res
+            .status(500)
+            .json({ message: "مشکلی در دریافت متریال ها بوجود آمده است ." });
+        }
+
+        res.json(rows);
+      }
+    );
+  });
+}
 
 function getMaterialById(req, res) {
   const { id } = req.params;
-  try {
-    const materials = readMaterialsFromFile();
-    const material = materials.find((m) => m.id === parseInt(id));
-    if (material) {
-      res.status(200).json(material);
-    } else {
-      res.status(404).json({ message: "متریال مورد نظر پیدا نشد." });
+  db.getConnection((err, connection) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ message: "مشکلی در ارتباط با دیتابیس بوجود آمده است ." });
     }
-  } catch (error) {
-    res.status(500).json({ message: "مشکلی در دریافت متریال پیش آمده است." });
-  }
+
+    connection.query(
+      `SELECT 
+        materials.id AS material_id,
+        materials.name AS material_name,
+        materials.quantity,
+        materials.created_at,
+        suppliers.id AS supplier_id,
+        suppliers.name AS supplier_name
+      FROM materials
+      JOIN suppliers ON suppliers.id = materials.supplier_id
+      where materials.id = ?`,
+      [id],
+      (err, rows) => {
+        connection.release();
+
+        if (err) {
+          return res.status(500).json({ message: "متریال مورد نظر پیدا نشد." });
+        }
+
+        res.json(rows);
+      }
+    );
+  });
 }
 
 function createMaterial(req, res) {
-  const newMaterial = req.body;
-  const materials = readMaterialsFromFile();
+  const { name, supplier_id, quantity } = req.body;
 
-  newMaterial.id =
-    materials.length > 0 ? materials[materials.length - 1].id + 1 : 1;
-  materials.push(newMaterial);
-  try {
-    writeMaterialsToFile(materials);
-    res.status(201).json(newMaterial);
-  } catch (error) {
-    res.status(500).json({ message: "مشکلی در ایجاد ماده جدید پیش آمده است." });
-  }
+  db.getConnection((err, connection) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ message: "مشکلی در ارتباط با دیتابیس بوجود آمده است ." });
+    }
+
+    connection.query(
+      "INSERT INTO materials (name, supplier_id, quantity) VALUES (?, ?, ?)",
+      [name, supplier_id, quantity],
+      (err, result) => {
+        connection.release();
+        if (err) {
+          console.log(err);
+          return res
+            .status(500)
+            .json({ message: "مشکلی در ایجاد ماده جدید پیش آمده است." });
+        }
+        res.status(201).json({
+          message: "متریال جدید با موفقیت اضافه شد .",
+          material_id: result.insertId,
+        });
+      }
+    );
+  });
 }
 
 function updateMaterial(req, res) {
   const { id } = req.params;
-  const updatedData = req.body;
-  try {
-    const materials = readMaterialsFromFile();
-    const materialIndex = materials.findIndex((m) => m.id === parseInt(id));
-
-    if (materialIndex !== -1) {
-      const currentMaterial = materials[materialIndex];
-      const updatedMaterial = {
-        id: currentMaterial.id,
-        name: updatedData.name || currentMaterial.name,
-        quantity:
-          updatedData.quantity !== undefined
-            ? updatedData.quantity
-            : currentMaterial.quantity,
-        supplier: updatedData.supplier || currentMaterial.supplier,
-      };
-      materials[materialIndex] = updatedMaterial;
-
-      writeMaterialsToFile(materials);
-      res.status(200).json(updatedMaterial);
-    } else {
-      res.status(404).json({ message: "متریال مورد نظر پیدا نشد." });
+  const { name, supplier_id, quantity } = req.body;
+  db.getConnection((err, connection) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ message: "مشکلی در ایجاد متریال جدید پیش آمده است." });
     }
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "مشکلی در به‌روزرسانی متریال پیش آمده است." });
-  }
+    connection.query(
+      "UPDATE materials SET name = ?, supplier_id = ?, quantity = ? WHERE id = ?",
+      [name, supplier_id, quantity, id],
+      (err, result) => {
+        connection.release();
+
+        if (err) {
+          return res
+            .status(500)
+            .json({ message: "مشکلی در به‌روزرسانی متریال پیش آمده است." });
+        }
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ message: "متریال مورد نظر پیدا نشد." });
+        }
+
+        res.json({ message: "متریال با موفقیت به روز شد . " });
+      }
+    );
+  });
 }
 
 function deleteMaterial(req, res) {
-  const id = parseInt(req.params.id);
-  const materials = readMaterialsFromFile();
+  const { id } = req.params;
+  db.getConnection((err, connection) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ message: "مشکلی در ایجاد ماده جدید پیش آمده است." });
+    }
+    connection.query(
+      "DELETE FROM materials WHERE id = ?",
+      [id],
+      (err, result) => {
+        connection.release();
 
-  const index = materials.findIndex((material) => material.id === id);
+        if (err) {
+          return res
+            .status(500)
+            .json({ message: "مشکلی در حذف متریال پیش آمده است." });
+        }
 
-  if (index !== -1) {
-    materials.splice(index, 1);
-    writeMaterialsToFile(materials);
-    res.status(204).send();
-  } else {
-    res.status(404).json({ message: "ماده پیدا نشد." });
-  }
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ message: "متریال مورد نظر پیدا نشد." });
+        }
+
+        res.json({ message: "متریال با موفقیت حذف شد . " });
+      }
+    );
+  });
 }
 
 module.exports = {

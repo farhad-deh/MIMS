@@ -5,12 +5,21 @@ const materialsController = require("../controllers/materialsController");
 
 /**
  * @swagger
+ * tags:
+ *   - name: Materials
+ *     description: "Endpoints related to materials"
+ */
+
+/**
+ * @swagger
  * /materials:
  *   get:
- *     summary: دریافت لیست متریال
+ *     tags: [Materials]
+ *     summary: دریافت لیست متریال و تامین کننده
+ *     description: لیست متریال ها همراه با مشخصات تامین کننده.
  *     responses:
  *       200:
- *         description: لیست متریال.
+ *         description: لیست متریال ها همراه با مشخصات تامین کننده
  *         content:
  *           application/json:
  *             schema:
@@ -18,16 +27,27 @@ const materialsController = require("../controllers/materialsController");
  *               items:
  *                 type: object
  *                 properties:
- *                   id:
+ *                   material_id:
  *                     type: integer
- *                   name:
+ *                     example: 1
+ *                   material_name:
  *                     type: string
+ *                     example: "Steel Rod"
  *                   quantity:
  *                     type: integer
- *                   supplier:
+ *                     example: 100
+ *                   created_at:
  *                     type: string
+ *                     format: date-time
+ *                     example: "2024-10-30T08:15:30Z"
+ *                   supplier_id:
+ *                     type: integer
+ *                     example: 2
+ *                   supplier_name:
+ *                     type: string
+ *                     example: "ABC Supplies"
  *       500:
- *         description: Error retrieving materials.
+ *         description: خطا در دریافت لیست متریال ها
  */
 router.get("/", materialsController.getAllMaterials);
 
@@ -35,22 +55,46 @@ router.get("/", materialsController.getAllMaterials);
  * @swagger
  * /materials/{id}:
  *   get:
+ *     tags: [Materials]
  *     summary: دریافت یک متریال با شناسه
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: شناسه ی متریال در لیست .
  *         schema:
  *           type: integer
- *           example: 1  # Example of a valid ID
+ *         description: شناسه متریال
  *     responses:
  *       200:
- *         description: یک متریال.
+ *         description: متریال همراه با مشخصات تامین کننده
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 material_id:
+ *                   type: integer
+ *                   example: 1
+ *                 material_name:
+ *                   type: string
+ *                   example: "Steel Rod"
+ *                 quantity:
+ *                   type: integer
+ *                   example: 100
+ *                 created_at:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2024-10-30T08:15:30Z"
+ *                 supplier_id:
+ *                   type: integer
+ *                   example: 2
+ *                 supplier_name:
+ *                   type: string
+ *                   example: "ABC Supplies"
  *       404:
- *         description: متریال پیدا نشد.
+ *         description: متریال پیدا نشد
  *       500:
- *         description: مشکلی در دریافت متریال پیش آمده است.
+ *         description: مشکل در ارتباط با دیتابیس
  */
 router.get("/:id", validateMaterialId, materialsController.getMaterialById);
 
@@ -58,7 +102,8 @@ router.get("/:id", validateMaterialId, materialsController.getMaterialById);
  * @swagger
  * /materials:
  *   post:
- *     summary: ایجاد یک ماده جدید
+ *     tags: [Materials]
+ *     summary: ایجاد یک متریال جدید
  *     requestBody:
  *       required: true
  *       content:
@@ -66,17 +111,30 @@ router.get("/:id", validateMaterialId, materialsController.getMaterialById);
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               material_name:
  *                 type: string
  *               quantity:
  *                 type: integer
- *               supplier:
- *                 type: string
+ *               supplier_id:
+ *                 type: integer
  *     responses:
  *       201:
- *         description: متریال با موفقیت ایجاد شد.
+ *         description: متریال جدید با موفقیت ایجاد شد
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: متریال جدید با موفقیت ایجاد شد
+ *                 material_id:
+ *                   type: integer
+ *                 created_at:
+ *                   type: string
+ *                   format: date-time
  *       500:
- *         description: مشکلی در ایجاد متریال پیش آمده است.
+ *         description: مشکلی در ایجاد متریال جدید به وجود امده است
  */
 router.post("/", materialsController.createMaterial);
 
@@ -84,6 +142,7 @@ router.post("/", materialsController.createMaterial);
  * @swagger
  * /materials/{id}:
  *   put:
+ *     tags: [Materials]
  *     summary: به‌روزرسانی یک متریال با شناسه
  *     parameters:
  *       - in: path
@@ -100,12 +159,12 @@ router.post("/", materialsController.createMaterial);
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               material_name:
  *                 type: string
  *               quantity:
  *                 type: integer
- *               supplier:
- *                 type: string
+ *               supplier_id:
+ *                 type: integer
  *     responses:
  *       200:
  *         description: متریال با موفقیت به‌روزرسانی شد.
@@ -120,6 +179,7 @@ router.put("/:id", materialsController.updateMaterial);
  * @swagger
  * /materials/{id}:
  *   delete:
+ *     tags: [Materials]
  *     summary: حذف یک متریال با شناسه
  *     parameters:
  *       - in: path
